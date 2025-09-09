@@ -47,10 +47,15 @@ export type Height = v.InferOutput<typeof heightSchema>;
 
 type ActivationType = "image" | "video" | "text" | "url" | "file";
 
-export type ActivationRule = {
-  type: ActivationType;
-  max?: number;
-};
+export type ActivationRule =
+  | {
+      type: ActivationType;
+      max?: number;
+    }
+  | {
+      type: "custom-query";
+      query: string;
+    };
 
 const withShareExtension: ConfigPlugin<{
   activationRules?: ActivationRule[];
@@ -69,7 +74,7 @@ const withShareExtension: ConfigPlugin<{
   }
 
   const expoFontPlugin = config.plugins?.find(
-    (p) => Array.isArray(p) && p.length && p.at(0) === "expo-font",
+    (p) => Array.isArray(p) && p.length && p.at(0) === "expo-font"
   );
 
   const fonts = expoFontPlugin?.at(1).fonts ?? [];
