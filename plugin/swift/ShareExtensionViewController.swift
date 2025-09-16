@@ -131,8 +131,8 @@ class ShareExtensionViewController: UIViewController {
             let backgroundFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionBackgroundColor") as? [String: CGFloat]
             let heightFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionHeight") as? CGFloat
 
-            configureRootView(reactNativeRootView, withBackgroundColorDict: backgroundFromInfoPlist, withHeight: heightFromInfoPlist)
             view.addSubview(reactNativeRootView)
+            configureRootView(reactNativeRootView, withBackgroundColorDict: backgroundFromInfoPlist, withHeight: heightFromInfoPlist)
 
             // Hide loading indicator once React content is ready
             self.loadingIndicator.stopAnimating()
@@ -142,25 +142,25 @@ class ShareExtensionViewController: UIViewController {
 
     private func configureRootView(_ rootView: UIView, withBackgroundColorDict dict: [String: CGFloat]?, withHeight: CGFloat?) {
         rootView.backgroundColor = backgroundColor(from: dict)
+        rootView.translatesAutoresizingMaskIntoConstraints = false
 
-        // Get the screen bounds
-        let screenBounds = UIScreen.main.bounds
-
-        // Calculate proper frame
-        let frame: CGRect
         if let withHeight = withHeight {
-            rootView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
-            frame = CGRect(
-                x: 0,
-                y: screenBounds.height - withHeight,
-                width: screenBounds.width,
-                height: withHeight
-            )
+            // Fixed height positioned at bottom of safe area
+            NSLayoutConstraint.activate([
+                rootView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                rootView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                rootView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+                rootView.heightAnchor.constraint(equalToConstant: withHeight),
+            ])
         } else {
-            rootView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            frame = screenBounds
+            // Full safe area
+            NSLayoutConstraint.activate([
+                rootView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                rootView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+                rootView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+                rootView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            ])
         }
-        rootView.frame = frame
     }
 
     private func setupLoadingIndicator() {
