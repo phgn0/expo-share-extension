@@ -518,6 +518,79 @@ class ShareExtensionViewController: UIViewController {
                             group.leave()
                         }
                     }
+                } else if provider.hasItemConformingToTypeIdentifier(kUTTypePDF as String) {
+                    group.enter()
+                    provider.loadItem(forTypeIdentifier: kUTTypePDF as String, options: nil) { pdfItem, error in
+                        DispatchQueue.main.async {
+                            print("pdfItem type: \(type(of: pdfItem))")
+
+                            // Ensure the files array exists
+                            if sharedItems["files"] == nil {
+                                sharedItems["files"] = [String]()
+                            }
+
+                            guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
+                                print("Could not find AppGroup in info.plist")
+                                group.leave()
+                                return
+                            }
+
+                            guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
+                                print("Could not set up file manager container URL for app group")
+                                group.leave()
+                                return
+                            }
+
+                            let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
+
+                            if !fileManager.fileExists(atPath: sharedDataUrl.path) {
+                                do {
+                                    try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
+                                } catch {
+                                    print("Failed to create sharedData directory: \(error)")
+                                    group.leave()
+                                    return
+                                }
+                            }
+
+                            // Check if pdfItem is URL (existing PDF file)
+                            if let pdfUrl = pdfItem as? URL {
+                                print("Got shared PDF file URL: \(pdfUrl.absoluteString)")
+                                let fileName = UUID().uuidString + ".pdf"
+                                let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
+
+                                do {
+                                    try fileManager.copyItem(at: pdfUrl, to: persistentURL)
+                                    if var fileArray = sharedItems["files"] as? [String] {
+                                        fileArray.append(persistentURL.absoluteString)
+                                        sharedItems["files"] = fileArray
+                                    }
+                                } catch {
+                                    print("Failed to copy PDF file: \(error)")
+                                }
+                            }
+                            // Check if pdfItem is Data (inline PDF data)
+                            else if let pdfData = pdfItem as? Data {
+                                print("Got shared PDF data of \(pdfData.count) bytes")
+                                let fileName = UUID().uuidString + ".pdf"
+                                let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
+
+                                do {
+                                    try pdfData.write(to: persistentURL)
+                                    print("Wrote shared PDF to file: \(persistentURL.absoluteString)")
+                                    if var fileArray = sharedItems["files"] as? [String] {
+                                        fileArray.append(persistentURL.absoluteString)
+                                        sharedItems["files"] = fileArray
+                                    }
+                                } catch {
+                                    print("Failed to save PDF data: \(error)")
+                                }
+                            } else {
+                                print("pdfItem is not a recognized type")
+                            }
+                            group.leave()
+                        }
+                    }
                 }
             }
         }
