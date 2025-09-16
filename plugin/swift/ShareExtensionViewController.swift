@@ -44,7 +44,6 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 }
 
 class ShareExtensionViewController: UIViewController {
-    private let loadingIndicator = UIActivityIndicatorView(style: .large)
     var reactNativeFactory: RCTReactNativeFactory?
     var reactNativeFactoryDelegate: RCTReactNativeFactoryDelegate?
     private var isCleanedUp = false
@@ -64,7 +63,6 @@ class ShareExtensionViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupLoadingIndicator()
         isCleanedUp = false
 
         // Set the contentScaleFactor for the main view of this view controller
@@ -133,10 +131,6 @@ class ShareExtensionViewController: UIViewController {
 
             view.addSubview(reactNativeRootView)
             configureRootView(reactNativeRootView, withBackgroundColorDict: backgroundFromInfoPlist, withHeight: heightFromInfoPlist)
-
-            // Hide loading indicator once React content is ready
-            self.loadingIndicator.stopAnimating()
-            self.loadingIndicator.removeFromSuperview()
         }
     }
 
@@ -161,16 +155,6 @@ class ShareExtensionViewController: UIViewController {
                 rootView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             ])
         }
-    }
-
-    private func setupLoadingIndicator() {
-        view.addSubview(loadingIndicator)
-        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-        ])
-        loadingIndicator.startAnimating()
     }
 
     private func openHostApp(path: String?) {
