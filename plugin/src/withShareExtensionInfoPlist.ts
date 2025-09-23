@@ -142,6 +142,7 @@ export const withShareExtensionInfoPlist: ConfigPlugin<{
       ShareExtensionHeight: height,
       HostAppScheme: config.scheme,
       WithFirebase: !!googleServicesFile,
+      UIDesignRequiresCompatibility: true,
     };
 
     // see https://github.com/expo/expo/blob/main/packages/expo-apple-authentication/plugin/src/withAppleAuthIOS.ts#L3-L17
