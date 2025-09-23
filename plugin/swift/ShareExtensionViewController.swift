@@ -51,6 +51,29 @@ class ShareExtensionViewController: UIViewController {
 
     private let logger = Logger()
 
+    // Ensure values are not redacted and JSON when possible
+    private func logPublic(_ message: String) {
+        logger.info("\(message, privacy: .public)")
+    }
+
+    private func warnPublic(_ message: String) {
+        logger.warning("\(message, privacy: .public)")
+    }
+
+    private func stringify(_ value: Any?) -> String {
+        guard let value = value else { return "null" }
+        if JSONSerialization.isValidJSONObject(value),
+           let data = try? JSONSerialization.data(withJSONObject: value, options: []),
+           let str = String(data: data, encoding: .utf8)
+        {
+            return str
+        }
+        if let url = value as? URL { return url.absoluteString }
+        if let data = value as? Data { return "Data(\(data.count) bytes)" }
+        if let data = value as? NSData { return "Data(\(data.length) bytes)" }
+        return String(describing: value)
+    }
+
     deinit {
         self.logger.info("🧹 ShareExtensionViewController deinit")
         cleanupAfterClose()
@@ -284,10 +307,10 @@ class ShareExtensionViewController: UIViewController {
             return
         }
 
-        logger.info("SHARED: Raw extension items count: \(extensionItems.count)")
+        logPublic("SHARED: Raw extension items count: \(extensionItems.count)")
         for (index, item) in extensionItems.enumerated() {
-            logger.info("SHARED: Extension item \(index): \(item)")
-            logger.info("SHARED: Extension item \(index) attachments count: \(item.attachments?.count ?? 0)")
+            logPublic("SHARED: Extension item \(index): \(stringify(item))")
+            logPublic("SHARED: Extension item \(index) attachments count: \(item.attachments?.count ?? 0)")
         }
 
         var sharedItems: [String: Any] = [:]
@@ -298,16 +321,16 @@ class ShareExtensionViewController: UIViewController {
 
         for item in extensionItems {
             for provider in item.attachments ?? [] {
-                logger.info("SHARED: Provider registered type identifiers: \(provider.registeredTypeIdentifiers)")
+                logPublic("SHARED: Provider registered type identifiers: \(stringify(provider.registeredTypeIdentifiers))")
                 if provider.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
                     logger.info("SHARED: Detected URL type")
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { urlItem, _ in
                         DispatchQueue.main.async {
-                            self.logger.info("SHARED: URL raw: \(type(of: urlItem)) = \(String(describing: urlItem))")
+                            self.logPublic("SHARED: URL raw: \(type(of: urlItem)) = \(self.stringify(urlItem))")
 
                             if let sharedURL = urlItem as? URL {
-                                self.logger.info("SHARED: URL parsed as URL: \(sharedURL.absoluteString) (isFile: \(sharedURL.isFileURL))")
+                                self.logPublic("SHARED: URL parsed as URL: \(sharedURL.absoluteString) (isFile: \(sharedURL.isFileURL))")
                                 if sharedURL.isFileURL {
                                     if sharedItems["files"] == nil {
                                         sharedItems["files"] = [String]()
@@ -320,7 +343,7 @@ class ShareExtensionViewController: UIViewController {
                                     sharedItems["url"] = sharedURL.absoluteString
                                 }
                             } else if let urlString = urlItem as? String {
-                                self.logger.info("SHARED: URL parsed as String: \(urlString)")
+                                self.logPublic("SHARED: URL parsed as String: \(urlString)")
                                 if let url = URL(string: urlString) {
                                     sharedItems["url"] = url.absoluteString
                                 } else {
@@ -337,15 +360,15 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypePropertyList as String, options: nil) { item, _ in
                         DispatchQueue.main.async {
-                            self.logger.info("SHARED: PropertyList raw: \(type(of: item)) = \(String(describing: item))")
+                            self.logPublic("SHARED: PropertyList raw: \(type(of: item)) = \(self.stringify(item))")
 
                             if let itemDict = item as? NSDictionary,
                                let results = itemDict[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary
                             {
-                                self.logger.info("SHARED: PropertyList parsed JS results: \(results)")
+                                self.logPublic("SHARED: PropertyList parsed JS results: \(self.stringify(results))")
                                 sharedItems["preprocessingResults"] = results
                             } else if let itemDict = item as? [String: Any] {
-                                self.logger.info("SHARED: PropertyList parsed as Swift Dict: \(Array(itemDict.keys))")
+                                self.logPublic("SHARED: PropertyList parsed as Swift Dict: \(self.stringify(Array(itemDict.keys)))")
                             } else {
                                 self.logger.warning("SHARED: PropertyList parsing failed")
                             }
@@ -357,10 +380,10 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { textItem, _ in
                         DispatchQueue.main.async {
-                            self.logger.info("SHARED: Text raw: \(type(of: textItem)) = \(String(describing: textItem))")
+                            self.logPublic("SHARED: Text raw: \(type(of: textItem)) = \(self.stringify(textItem))")
 
                             if let text = textItem as? String {
-                                self.logger.info("SHARED: Text parsed as String: \(text.prefix(100))...")
+                                self.logPublic("SHARED: Text parsed as String: \(text.prefix(100))...")
                                 if let url = URL(string: text), url.scheme != nil, sharedItems["url"] == nil {
                                     sharedItems["url"] = text
                                 }
@@ -368,7 +391,7 @@ class ShareExtensionViewController: UIViewController {
                             } else if let data = textItem as? Data,
                                       let text = String(data: data, encoding: .utf8)
                             {
-                                self.logger.info("SHARED: Text parsed from Data: \(text.prefix(100))...")
+                                self.logPublic("SHARED: Text parsed from Data: \(text.prefix(100))...")
                                 sharedItems["text"] = text
                             } else {
                                 self.logger.warning("SHARED: Text parsing failed")
@@ -381,7 +404,7 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { imageItem, error in
                         DispatchQueue.main.async {
-                            self.logger.info("SHARED: Image raw: \(type(of: imageItem)) = \(String(describing: imageItem))")
+                            self.logPublic("SHARED: Image raw: \(type(of: imageItem)) = \(self.stringify(imageItem))")
 
                             // Ensure the array exists
                             if sharedItems["images"] == nil {
@@ -399,7 +422,7 @@ class ShareExtensionViewController: UIViewController {
                             }
 
                             if let imageUri = imageItem as? NSURL {
-                                self.logger.info("SHARED: Image parsed as NSURL: \(imageUri.absoluteString ?? "nil")")
+                                self.logPublic("SHARED: Image parsed as NSURL: \(imageUri.absoluteString ?? "nil")")
                                 if let tempFilePath = imageUri.path {
                                     let fileExtension = imageUri.pathExtension ?? "jpg"
                                     let fileName = UUID().uuidString + "." + fileExtension
@@ -427,7 +450,7 @@ class ShareExtensionViewController: UIViewController {
                                     }
                                 }
                             } else if let image = imageItem as? UIImage {
-                                self.logger.info("SHARED: Image parsed as UIImage: \(NSCoder.string(for: image.size))")
+                                self.logPublic("SHARED: Image parsed as UIImage: \(NSCoder.string(for: image.size))")
                                 // Handle UIImage if needed (e.g., save to disk and get the file path)
                                 if let imageData = image.jpegData(compressionQuality: 1.0) {
                                     let fileName = UUID().uuidString + ".jpg"
@@ -487,7 +510,7 @@ class ShareExtensionViewController: UIViewController {
                                     self.logger.warning("Failed to save image data: \(error)")
                                 }
                             } else {
-                                self.logger.warning("SHARED: Image parsing failed - unknown type: \(type(of: imageItem))")
+                                self.warnPublic("SHARED: Image parsing failed - unknown type: \(type(of: imageItem))")
                             }
                             group.leave()
                         }
@@ -497,7 +520,7 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeMovie as String, options: nil) { videoItem, error in
                         DispatchQueue.main.async {
-                            self.logger.info("SHARED: Movie raw: \(type(of: videoItem)) = \(String(describing: videoItem))")
+                            self.logPublic("SHARED: Movie raw: \(type(of: videoItem)) = \(self.stringify(videoItem))")
 
                             // Ensure the array exists
                             if sharedItems["videos"] == nil {
@@ -516,7 +539,7 @@ class ShareExtensionViewController: UIViewController {
 
                             // Check if videoItem is NSURL
                             if let videoUri = videoItem as? NSURL {
-                                self.logger.info("SHARED: Movie parsed as NSURL: \(videoUri.absoluteString ?? "nil")")
+                                self.logPublic("SHARED: Movie parsed as NSURL: \(videoUri.absoluteString ?? "nil")")
                                 if let tempFilePath = videoUri.path {
                                     let fileExtension = videoUri.pathExtension ?? "mov"
                                     let fileName = UUID().uuidString + "." + fileExtension
@@ -546,7 +569,7 @@ class ShareExtensionViewController: UIViewController {
                             }
                             // Check if videoItem is NSData
                             else if let videoData = videoItem as? NSData {
-                                self.logger.info("SHARED: Movie parsed as NSData: \(videoData.length) bytes")
+                                self.logPublic("SHARED: Movie parsed as NSData: \(videoData.length) bytes")
                                 let fileExtension = "mov" // Using mov as default type extension
                                 let fileName = UUID().uuidString + "." + fileExtension
 
@@ -574,7 +597,7 @@ class ShareExtensionViewController: UIViewController {
                             }
                             // Check if videoItem is AVAsset
                             else if let asset = videoItem as? AVAsset {
-                                self.logger.info("SHARED: Movie parsed as AVAsset: \(asset)")
+                                self.logPublic("SHARED: Movie parsed as AVAsset: \(self.stringify(asset))")
                                 let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
 
                                 let fileExtension = "mov" // Using mov as default type extension
@@ -618,7 +641,7 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypePDF as String, options: nil) { pdfItem, error in
                         DispatchQueue.main.async {
-                            self.logger.info("SHARED: PDF raw: \(type(of: pdfItem)) = \(String(describing: pdfItem))")
+                            self.logPublic("SHARED: PDF raw: \(type(of: pdfItem)) = \(self.stringify(pdfItem))")
 
                             // Ensure the files array exists
                             if sharedItems["files"] == nil {
@@ -651,7 +674,7 @@ class ShareExtensionViewController: UIViewController {
 
                             // Check if pdfItem is URL (existing PDF file)
                             if let pdfUrl = pdfItem as? URL {
-                                self.logger.info("SHARED: PDF parsed as URL: \(pdfUrl.absoluteString)")
+                                self.logPublic("SHARED: PDF parsed as URL: \(pdfUrl.absoluteString)")
                                 let fileName = UUID().uuidString + ".pdf"
                                 let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
 
@@ -667,7 +690,7 @@ class ShareExtensionViewController: UIViewController {
                             }
                             // Check if pdfItem is Data (inline PDF data)
                             else if let pdfData = pdfItem as? Data {
-                                self.logger.info("SHARED: PDF parsed as Data: \(pdfData.count) bytes")
+                                self.logPublic("SHARED: PDF parsed as Data: \(pdfData.count) bytes")
                                 let fileName = UUID().uuidString + ".pdf"
                                 let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
 
@@ -692,10 +715,10 @@ class ShareExtensionViewController: UIViewController {
         }
 
         group.notify(queue: .main) {
-            self.logger.info("SHARED: Final parsed data: \(sharedItems)")
-            self.logger.info("SHARED: Data keys found: \(Array(sharedItems.keys))")
+            self.logPublic("SHARED: Final parsed data: \(self.stringify(sharedItems))")
+            self.logPublic("SHARED: Data keys found: \(self.stringify(Array(sharedItems.keys)))")
             for (key, value) in sharedItems {
-                self.logger.info("SHARED: \(key): \(type(of: value)) = \(String(describing: value))")
+                self.logPublic("SHARED: \(key): \(type(of: value)) = \(self.stringify(value))")
             }
             completion(sharedItems.isEmpty ? nil : sharedItems)
         }
