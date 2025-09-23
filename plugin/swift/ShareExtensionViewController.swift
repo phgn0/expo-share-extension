@@ -130,7 +130,7 @@ class ShareExtensionViewController: UIViewController {
 
             // Add white background view that fills the safe area
             let whiteBackgroundView = UIView()
-            whiteBackgroundView.backgroundColor = UIColor.white
+            whiteBackgroundView.backgroundColor = UIColor.red
             whiteBackgroundView.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(whiteBackgroundView)
 
@@ -148,7 +148,7 @@ class ShareExtensionViewController: UIViewController {
     }
 
     private func configureRootView(_ rootView: UIView, withHeight: CGFloat?) {
-        rootView.backgroundColor = UIColor.clear
+        rootView.backgroundColor = UIColor.green
         rootView.translatesAutoresizingMaskIntoConstraints = false
 
         if let withHeight = withHeight {
