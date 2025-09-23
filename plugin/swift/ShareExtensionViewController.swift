@@ -126,7 +126,6 @@ class ShareExtensionViewController: UIViewController {
                 initialProperties: initialProps
             )
 
-            let backgroundFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionBackgroundColor") as? [String: CGFloat]
             let heightFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionHeight") as? CGFloat
 
             // Add white background view that fills the safe area
@@ -144,12 +143,12 @@ class ShareExtensionViewController: UIViewController {
             ])
 
             view.addSubview(reactNativeRootView)
-            configureRootView(reactNativeRootView, withBackgroundColorDict: backgroundFromInfoPlist, withHeight: heightFromInfoPlist)
+            configureRootView(reactNativeRootView, withHeight: heightFromInfoPlist)
         }
     }
 
-    private func configureRootView(_ rootView: UIView, withBackgroundColorDict dict: [String: CGFloat]?, withHeight: CGFloat?) {
-        rootView.backgroundColor = backgroundColor(from: dict)
+    private func configureRootView(_ rootView: UIView, withHeight: CGFloat?) {
+        rootView.backgroundColor = UIColor.clear
         rootView.translatesAutoresizingMaskIntoConstraints = false
 
         if let withHeight = withHeight {
