@@ -52,7 +52,7 @@ class ShareExtensionViewController: UIViewController {
     private let logger = Logger()
 
     deinit {
-        logger.info("🧹 ShareExtensionViewController deinit")
+        self.logger.info("🧹 ShareExtensionViewController deinit")
         cleanupAfterClose()
     }
 
@@ -96,7 +96,7 @@ class ShareExtensionViewController: UIViewController {
     private func loadReactNativeContent() {
         getShareData { [weak self] sharedData in
             guard let self = self else {
-                logger.error("❌ Self was deallocated")
+                self.logger.error("❌ Self was deallocated")
                 return
             }
 
@@ -111,8 +111,8 @@ class ShareExtensionViewController: UIViewController {
             let currentScale = UIScreen.main.scale
 
             // Log the scale of the parent view
-            logger.info("[ShareExtension] self.view.contentScaleFactor before adding subview: \(self.view.contentScaleFactor)")
-            logger.info("[ShareExtension] UIScreen.main.scale: \(currentScale)")
+            self.logger.info("[ShareExtension] self.view.contentScaleFactor before adding subview: \(self.view.contentScaleFactor)")
+            self.logger.info("[ShareExtension] UIScreen.main.scale: \(currentScale)")
 
             // Add screen metrics to initial properties for React Native
             // These can be used by the JS side to understand its container size and scale
@@ -301,10 +301,10 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { urlItem, _ in
                         DispatchQueue.main.async {
-                            logger.info("SHARED: URL raw: \(type(of: urlItem)) = \(String(describing: urlItem))")
+                            self.logger.info("SHARED: URL raw: \(type(of: urlItem)) = \(String(describing: urlItem))")
 
                             if let sharedURL = urlItem as? URL {
-                                logger.info("SHARED: URL parsed as URL: \(sharedURL.absoluteString) (isFile: \(sharedURL.isFileURL))")
+                                self.logger.info("SHARED: URL parsed as URL: \(sharedURL.absoluteString) (isFile: \(sharedURL.isFileURL))")
                                 if sharedURL.isFileURL {
                                     if sharedItems["files"] == nil {
                                         sharedItems["files"] = [String]()
@@ -317,14 +317,14 @@ class ShareExtensionViewController: UIViewController {
                                     sharedItems["url"] = sharedURL.absoluteString
                                 }
                             } else if let urlString = urlItem as? String {
-                                logger.info("SHARED: URL parsed as String: \(urlString)")
+                                self.logger.info("SHARED: URL parsed as String: \(urlString)")
                                 if let url = URL(string: urlString) {
                                     sharedItems["url"] = url.absoluteString
                                 } else {
                                     sharedItems["text"] = urlString
                                 }
                             } else {
-                                logger.warning("SHARED: URL parsing failed")
+                                self.logger.warning("SHARED: URL parsing failed")
                             }
                             group.leave()
                         }
@@ -334,17 +334,17 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypePropertyList as String, options: nil) { item, _ in
                         DispatchQueue.main.async {
-                            logger.info("SHARED: PropertyList raw: \(type(of: item)) = \(String(describing: item))")
+                            self.logger.info("SHARED: PropertyList raw: \(type(of: item)) = \(String(describing: item))")
 
                             if let itemDict = item as? NSDictionary,
                                let results = itemDict[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary
                             {
-                                logger.info("SHARED: PropertyList parsed JS results: \(results)")
+                                self.logger.info("SHARED: PropertyList parsed JS results: \(results)")
                                 sharedItems["preprocessingResults"] = results
                             } else if let itemDict = item as? [String: Any] {
-                                logger.info("SHARED: PropertyList parsed as Swift Dict: \(Array(itemDict.keys))")
+                                self.logger.info("SHARED: PropertyList parsed as Swift Dict: \(Array(itemDict.keys))")
                             } else {
-                                logger.warning("SHARED: PropertyList parsing failed")
+                                self.logger.warning("SHARED: PropertyList parsing failed")
                             }
                             group.leave()
                         }
@@ -354,10 +354,10 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { textItem, _ in
                         DispatchQueue.main.async {
-                            logger.info("SHARED: Text raw: \(type(of: textItem)) = \(String(describing: textItem))")
+                            self.logger.info("SHARED: Text raw: \(type(of: textItem)) = \(String(describing: textItem))")
 
                             if let text = textItem as? String {
-                                logger.info("SHARED: Text parsed as String: \(text.prefix(100))...")
+                                self.logger.info("SHARED: Text parsed as String: \(text.prefix(100))...")
                                 if let url = URL(string: text), url.scheme != nil, sharedItems["url"] == nil {
                                     sharedItems["url"] = text
                                 }
@@ -365,10 +365,10 @@ class ShareExtensionViewController: UIViewController {
                             } else if let data = textItem as? Data,
                                       let text = String(data: data, encoding: .utf8)
                             {
-                                logger.info("SHARED: Text parsed from Data: \(text.prefix(100))...")
+                                self.logger.info("SHARED: Text parsed from Data: \(text.prefix(100))...")
                                 sharedItems["text"] = text
                             } else {
-                                logger.warning("SHARED: Text parsing failed")
+                                self.logger.warning("SHARED: Text parsing failed")
                             }
                             group.leave()
                         }
@@ -378,7 +378,7 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeImage as String, options: nil) { imageItem, error in
                         DispatchQueue.main.async {
-                            logger.info("SHARED: Image raw: \(type(of: imageItem)) = \(String(describing: imageItem))")
+                            self.logger.info("SHARED: Image raw: \(type(of: imageItem)) = \(String(describing: imageItem))")
 
                             // Ensure the array exists
                             if sharedItems["images"] == nil {
@@ -386,17 +386,17 @@ class ShareExtensionViewController: UIViewController {
                             }
 
                             guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                                logger.warning("Could not find AppGroup in info.plist")
+                                self.logger.warning("Could not find AppGroup in info.plist")
                                 return
                             }
 
                             guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                                logger.warning("Could not set up file manager container URL for app group")
+                                self.logger.warning("Could not set up file manager container URL for app group")
                                 return
                             }
 
                             if let imageUri = imageItem as? NSURL {
-                                logger.info("SHARED: Image parsed as NSURL: \(imageUri.absoluteString ?? "nil")")
+                                self.logger.info("SHARED: Image parsed as NSURL: \(imageUri.absoluteString ?? "nil")")
                                 if let tempFilePath = imageUri.path {
                                     let fileExtension = imageUri.pathExtension ?? "jpg"
                                     let fileName = UUID().uuidString + "." + fileExtension
@@ -407,7 +407,7 @@ class ShareExtensionViewController: UIViewController {
                                         do {
                                             try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                         } catch {
-                                            logger.warning("Failed to create sharedData directory: \(error)")
+                                            self.logger.warning("Failed to create sharedData directory: \(error)")
                                         }
                                     }
 
@@ -420,11 +420,11 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["images"] = videoArray
                                         }
                                     } catch {
-                                        logger.warning("Failed to copy image: \(error)")
+                                        self.logger.warning("Failed to copy image: \(error)")
                                     }
                                 }
                             } else if let image = imageItem as? UIImage {
-                                logger.info("SHARED: Image parsed as UIImage: \(image.size)")
+                                self.logger.info("SHARED: Image parsed as UIImage: \(NSStringFromCGSize(image.size))")
                                 // Handle UIImage if needed (e.g., save to disk and get the file path)
                                 if let imageData = image.jpegData(compressionQuality: 1.0) {
                                     let fileName = UUID().uuidString + ".jpg"
@@ -435,7 +435,7 @@ class ShareExtensionViewController: UIViewController {
                                         do {
                                             try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                         } catch {
-                                            logger.warning("Failed to create sharedData directory: \(error)")
+                                            self.logger.warning("Failed to create sharedData directory: \(error)")
                                         }
                                     }
 
@@ -448,11 +448,11 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["images"] = imageArray
                                         }
                                     } catch {
-                                        logger.warning("Failed to save image: \(error)")
+                                        self.logger.warning("Failed to save image: \(error)")
                                     }
                                 }
                             } else {
-                                logger.warning("SHARED: Image parsing failed")
+                                self.logger.warning("SHARED: Image parsing failed")
                             }
                             group.leave()
                         }
@@ -462,7 +462,7 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeMovie as String, options: nil) { videoItem, error in
                         DispatchQueue.main.async {
-                            logger.info("SHARED: Movie raw: \(type(of: videoItem)) = \(String(describing: videoItem))")
+                            self.logger.info("SHARED: Movie raw: \(type(of: videoItem)) = \(String(describing: videoItem))")
 
                             // Ensure the array exists
                             if sharedItems["videos"] == nil {
@@ -470,18 +470,18 @@ class ShareExtensionViewController: UIViewController {
                             }
 
                             guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                                logger.warning("Could not find AppGroup in info.plist")
+                                self.logger.warning("Could not find AppGroup in info.plist")
                                 return
                             }
 
                             guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                                logger.warning("Could not set up file manager container URL for app group")
+                                self.logger.warning("Could not set up file manager container URL for app group")
                                 return
                             }
 
                             // Check if videoItem is NSURL
                             if let videoUri = videoItem as? NSURL {
-                                logger.info("SHARED: Movie parsed as NSURL: \(videoUri.absoluteString ?? "nil")")
+                                self.logger.info("SHARED: Movie parsed as NSURL: \(videoUri.absoluteString ?? "nil")")
                                 if let tempFilePath = videoUri.path {
                                     let fileExtension = videoUri.pathExtension ?? "mov"
                                     let fileName = UUID().uuidString + "." + fileExtension
@@ -492,7 +492,7 @@ class ShareExtensionViewController: UIViewController {
                                         do {
                                             try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                         } catch {
-                                            logger.warning("Failed to create sharedData directory: \(error)")
+                                            self.logger.warning("Failed to create sharedData directory: \(error)")
                                         }
                                     }
 
@@ -505,13 +505,13 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["videos"] = videoArray
                                         }
                                     } catch {
-                                        logger.warning("Failed to copy video: \(error)")
+                                        self.logger.warning("Failed to copy video: \(error)")
                                     }
                                 }
                             }
                             // Check if videoItem is NSData
                             else if let videoData = videoItem as? NSData {
-                                logger.info("SHARED: Movie parsed as NSData: \(videoData.length) bytes")
+                                self.logger.info("SHARED: Movie parsed as NSData: \(videoData.length) bytes")
                                 let fileExtension = "mov" // Using mov as default type extension
                                 let fileName = UUID().uuidString + "." + fileExtension
 
@@ -521,7 +521,7 @@ class ShareExtensionViewController: UIViewController {
                                     do {
                                         try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                     } catch {
-                                        logger.warning("Failed to create sharedData directory: \(error)")
+                                        self.logger.warning("Failed to create sharedData directory: \(error)")
                                     }
                                 }
 
@@ -534,12 +534,12 @@ class ShareExtensionViewController: UIViewController {
                                         sharedItems["videos"] = videoArray
                                     }
                                 } catch {
-                                    logger.warning("Failed to save video: \(error)")
+                                    self.logger.warning("Failed to save video: \(error)")
                                 }
                             }
                             // Check if videoItem is AVAsset
                             else if let asset = videoItem as? AVAsset {
-                                logger.info("SHARED: Movie parsed as AVAsset: \(asset)")
+                                self.logger.info("SHARED: Movie parsed as AVAsset: \(asset)")
                                 let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
 
                                 let fileExtension = "mov" // Using mov as default type extension
@@ -551,7 +551,7 @@ class ShareExtensionViewController: UIViewController {
                                     do {
                                         try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                     } catch {
-                                        logger.warning("Failed to create sharedData directory: \(error)")
+                                        self.logger.warning("Failed to create sharedData directory: \(error)")
                                     }
                                 }
 
@@ -567,13 +567,13 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["videos"] = videoArray
                                         }
                                     case .failed:
-                                        logger.warning("Failed to export video: \(String(describing: exportSession?.error))")
+                                        self.logger.warning("Failed to export video: \(String(describing: exportSession?.error))")
                                     default:
                                         break
                                     }
                                 }
                             } else {
-                                logger.warning("SHARED: Movie parsing failed")
+                                self.logger.warning("SHARED: Movie parsing failed")
                             }
                             group.leave()
                         }
@@ -583,7 +583,7 @@ class ShareExtensionViewController: UIViewController {
                     group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypePDF as String, options: nil) { pdfItem, error in
                         DispatchQueue.main.async {
-                            logger.info("SHARED: PDF raw: \(type(of: pdfItem)) = \(String(describing: pdfItem))")
+                            self.logger.info("SHARED: PDF raw: \(type(of: pdfItem)) = \(String(describing: pdfItem))")
 
                             // Ensure the files array exists
                             if sharedItems["files"] == nil {
@@ -591,13 +591,13 @@ class ShareExtensionViewController: UIViewController {
                             }
 
                             guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                                logger.warning("Could not find AppGroup in info.plist")
+                                self.logger.warning("Could not find AppGroup in info.plist")
                                 group.leave()
                                 return
                             }
 
                             guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                                logger.warning("Could not set up file manager container URL for app group")
+                                self.logger.warning("Could not set up file manager container URL for app group")
                                 group.leave()
                                 return
                             }
@@ -608,7 +608,7 @@ class ShareExtensionViewController: UIViewController {
                                 do {
                                     try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                 } catch {
-                                    logger.warning("Failed to create sharedData directory: \(error)")
+                                    self.logger.warning("Failed to create sharedData directory: \(error)")
                                     group.leave()
                                     return
                                 }
@@ -616,7 +616,7 @@ class ShareExtensionViewController: UIViewController {
 
                             // Check if pdfItem is URL (existing PDF file)
                             if let pdfUrl = pdfItem as? URL {
-                                logger.info("SHARED: PDF parsed as URL: \(pdfUrl.absoluteString)")
+                                self.logger.info("SHARED: PDF parsed as URL: \(pdfUrl.absoluteString)")
                                 let fileName = UUID().uuidString + ".pdf"
                                 let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
 
@@ -627,27 +627,27 @@ class ShareExtensionViewController: UIViewController {
                                         sharedItems["files"] = fileArray
                                     }
                                 } catch {
-                                    logger.warning("Failed to copy PDF file: \(error)")
+                                    self.logger.warning("Failed to copy PDF file: \(error)")
                                 }
                             }
                             // Check if pdfItem is Data (inline PDF data)
                             else if let pdfData = pdfItem as? Data {
-                                logger.info("SHARED: PDF parsed as Data: \(pdfData.count) bytes")
+                                self.logger.info("SHARED: PDF parsed as Data: \(pdfData.count) bytes")
                                 let fileName = UUID().uuidString + ".pdf"
                                 let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
 
                                 do {
                                     try pdfData.write(to: persistentURL)
-                                    logger.info("Wrote shared PDF to file: \(persistentURL.absoluteString)")
+                                    self.logger.info("Wrote shared PDF to file: \(persistentURL.absoluteString)")
                                     if var fileArray = sharedItems["files"] as? [String] {
                                         fileArray.append(persistentURL.absoluteString)
                                         sharedItems["files"] = fileArray
                                     }
                                 } catch {
-                                    logger.warning("Failed to save PDF data: \(error)")
+                                    self.logger.warning("Failed to save PDF data: \(error)")
                                 }
                             } else {
-                                logger.warning("SHARED: PDF parsing failed")
+                                self.logger.warning("SHARED: PDF parsing failed")
                             }
                             group.leave()
                         }
@@ -657,10 +657,10 @@ class ShareExtensionViewController: UIViewController {
         }
 
         group.notify(queue: .main) {
-            logger.info("SHARED: Final parsed data: \(sharedItems)")
-            logger.info("SHARED: Data keys found: \(Array(sharedItems.keys))")
+            self.logger.info("SHARED: Final parsed data: \(sharedItems)")
+            self.logger.info("SHARED: Data keys found: \(Array(sharedItems.keys))")
             for (key, value) in sharedItems {
-                logger.info("SHARED: \(key): \(type(of: value)) = \(value)")
+                self.logger.info("SHARED: \(key): \(type(of: value)) = \(String(describing: value))")
             }
             completion(sharedItems.isEmpty ? nil : sharedItems)
         }
