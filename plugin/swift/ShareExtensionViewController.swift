@@ -70,6 +70,9 @@ class ShareExtensionViewController: UIViewController {
 
         // Set the contentScaleFactor for the main view of this view controller
         view.contentScaleFactor = UIScreen.main.scale
+        // Ensure transparent background
+        view.backgroundColor = UIColor.clear
+        view.isOpaque = false
 
         #if canImport(FirebaseCore)
             if Bundle.main.object(forInfoDictionaryKey: "WithFirebase") as? Bool ?? false {
