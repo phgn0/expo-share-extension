@@ -96,7 +96,7 @@ class ShareExtensionViewController: UIViewController {
     private func loadReactNativeContent() {
         getShareData { [weak self] sharedData in
             guard let self = self else {
-                self.logger.error("❌ Self was deallocated")
+                print("❌ Self was deallocated")
                 return
             }
 
@@ -424,7 +424,7 @@ class ShareExtensionViewController: UIViewController {
                                     }
                                 }
                             } else if let image = imageItem as? UIImage {
-                                self.logger.info("SHARED: Image parsed as UIImage: \(NSStringFromCGSize(image.size))")
+                                self.logger.info("SHARED: Image parsed as UIImage: \(NSCoder.string(for: image.size))")
                                 // Handle UIImage if needed (e.g., save to disk and get the file path)
                                 if let imageData = image.jpegData(compressionQuality: 1.0) {
                                     let fileName = UUID().uuidString + ".jpg"
