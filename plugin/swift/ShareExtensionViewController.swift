@@ -82,6 +82,7 @@ class ShareExtensionViewController: UIViewController {
     override func loadView() {
         view = UIView()
         view.backgroundColor = UIColor.clear
+        view.isOpaque = false
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -98,9 +99,6 @@ class ShareExtensionViewController: UIViewController {
 
         // Set the contentScaleFactor for the main view of this view controller
         view.contentScaleFactor = UIScreen.main.scale
-        // Ensure transparent background
-        view.backgroundColor = UIColor.clear
-        view.isOpaque = false
 
         #if canImport(FirebaseCore)
             if Bundle.main.object(forInfoDictionaryKey: "WithFirebase") as? Bool ?? false {
@@ -170,11 +168,11 @@ class ShareExtensionViewController: UIViewController {
             let whiteBackgroundView = UIView()
             whiteBackgroundView.backgroundColor = UIColor.white
             whiteBackgroundView.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(whiteBackgroundView)
+            view.insertSubview(whiteBackgroundView, belowSubview: reactNativeRootView)
 
             // Configure white background to overlap React view by 100px and fill to bottom of screen
             NSLayoutConstraint.activate([
-                whiteBackgroundView.topAnchor.constraint(equalTo: reactNativeRootView.bottomAnchor, constant: -10),
+                whiteBackgroundView.topAnchor.constraint(equalTo: reactNativeRootView.bottomAnchor, constant: -100),
                 whiteBackgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 whiteBackgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                 whiteBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
