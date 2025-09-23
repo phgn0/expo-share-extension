@@ -276,7 +276,7 @@ class ShareExtensionViewController: UIViewController {
 
     private func getShareData(completion: @escaping ([String: Any]?) -> Void) {
         guard let extensionItems = extensionContext?.inputItems as? [NSExtensionItem] else {
-            logger.warn("SHARED: No extension items found")
+            logger.warning("SHARED: No extension items found")
             completion(nil)
             return
         }
@@ -324,7 +324,7 @@ class ShareExtensionViewController: UIViewController {
                                     sharedItems["text"] = urlString
                                 }
                             } else {
-                                logger.warn("SHARED: URL parsing failed")
+                                logger.warning("SHARED: URL parsing failed")
                             }
                             group.leave()
                         }
@@ -344,7 +344,7 @@ class ShareExtensionViewController: UIViewController {
                             } else if let itemDict = item as? [String: Any] {
                                 logger.info("SHARED: PropertyList parsed as Swift Dict: \(Array(itemDict.keys))")
                             } else {
-                                logger.warn("SHARED: PropertyList parsing failed")
+                                logger.warning("SHARED: PropertyList parsing failed")
                             }
                             group.leave()
                         }
@@ -368,7 +368,7 @@ class ShareExtensionViewController: UIViewController {
                                 logger.info("SHARED: Text parsed from Data: \(text.prefix(100))...")
                                 sharedItems["text"] = text
                             } else {
-                                logger.warn("SHARED: Text parsing failed")
+                                logger.warning("SHARED: Text parsing failed")
                             }
                             group.leave()
                         }
@@ -386,12 +386,12 @@ class ShareExtensionViewController: UIViewController {
                             }
 
                             guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                                logger.warn("Could not find AppGroup in info.plist")
+                                logger.warning("Could not find AppGroup in info.plist")
                                 return
                             }
 
                             guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                                logger.warn("Could not set up file manager container URL for app group")
+                                logger.warning("Could not set up file manager container URL for app group")
                                 return
                             }
 
@@ -407,7 +407,7 @@ class ShareExtensionViewController: UIViewController {
                                         do {
                                             try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                         } catch {
-                                            logger.warn("Failed to create sharedData directory: \(error)")
+                                            logger.warning("Failed to create sharedData directory: \(error)")
                                         }
                                     }
 
@@ -420,7 +420,7 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["images"] = videoArray
                                         }
                                     } catch {
-                                        logger.warn("Failed to copy image: \(error)")
+                                        logger.warning("Failed to copy image: \(error)")
                                     }
                                 }
                             } else if let image = imageItem as? UIImage {
@@ -435,7 +435,7 @@ class ShareExtensionViewController: UIViewController {
                                         do {
                                             try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                         } catch {
-                                            logger.warn("Failed to create sharedData directory: \(error)")
+                                            logger.warning("Failed to create sharedData directory: \(error)")
                                         }
                                     }
 
@@ -448,11 +448,11 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["images"] = imageArray
                                         }
                                     } catch {
-                                        logger.warn("Failed to save image: \(error)")
+                                        logger.warning("Failed to save image: \(error)")
                                     }
                                 }
                             } else {
-                                logger.warn("SHARED: Image parsing failed")
+                                logger.warning("SHARED: Image parsing failed")
                             }
                             group.leave()
                         }
@@ -470,12 +470,12 @@ class ShareExtensionViewController: UIViewController {
                             }
 
                             guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                                logger.warn("Could not find AppGroup in info.plist")
+                                logger.warning("Could not find AppGroup in info.plist")
                                 return
                             }
 
                             guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                                logger.warn("Could not set up file manager container URL for app group")
+                                logger.warning("Could not set up file manager container URL for app group")
                                 return
                             }
 
@@ -492,7 +492,7 @@ class ShareExtensionViewController: UIViewController {
                                         do {
                                             try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                         } catch {
-                                            logger.warn("Failed to create sharedData directory: \(error)")
+                                            logger.warning("Failed to create sharedData directory: \(error)")
                                         }
                                     }
 
@@ -505,7 +505,7 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["videos"] = videoArray
                                         }
                                     } catch {
-                                        logger.warn("Failed to copy video: \(error)")
+                                        logger.warning("Failed to copy video: \(error)")
                                     }
                                 }
                             }
@@ -521,7 +521,7 @@ class ShareExtensionViewController: UIViewController {
                                     do {
                                         try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                     } catch {
-                                        logger.warn("Failed to create sharedData directory: \(error)")
+                                        logger.warning("Failed to create sharedData directory: \(error)")
                                     }
                                 }
 
@@ -534,7 +534,7 @@ class ShareExtensionViewController: UIViewController {
                                         sharedItems["videos"] = videoArray
                                     }
                                 } catch {
-                                    logger.warn("Failed to save video: \(error)")
+                                    logger.warning("Failed to save video: \(error)")
                                 }
                             }
                             // Check if videoItem is AVAsset
@@ -551,7 +551,7 @@ class ShareExtensionViewController: UIViewController {
                                     do {
                                         try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                     } catch {
-                                        logger.warn("Failed to create sharedData directory: \(error)")
+                                        logger.warning("Failed to create sharedData directory: \(error)")
                                     }
                                 }
 
@@ -567,13 +567,13 @@ class ShareExtensionViewController: UIViewController {
                                             sharedItems["videos"] = videoArray
                                         }
                                     case .failed:
-                                        logger.warn("Failed to export video: \(String(describing: exportSession?.error))")
+                                        logger.warning("Failed to export video: \(String(describing: exportSession?.error))")
                                     default:
                                         break
                                     }
                                 }
                             } else {
-                                logger.warn("SHARED: Movie parsing failed")
+                                logger.warning("SHARED: Movie parsing failed")
                             }
                             group.leave()
                         }
@@ -591,13 +591,13 @@ class ShareExtensionViewController: UIViewController {
                             }
 
                             guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                                logger.warn("Could not find AppGroup in info.plist")
+                                logger.warning("Could not find AppGroup in info.plist")
                                 group.leave()
                                 return
                             }
 
                             guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                                logger.warn("Could not set up file manager container URL for app group")
+                                logger.warning("Could not set up file manager container URL for app group")
                                 group.leave()
                                 return
                             }
@@ -608,7 +608,7 @@ class ShareExtensionViewController: UIViewController {
                                 do {
                                     try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
                                 } catch {
-                                    logger.warn("Failed to create sharedData directory: \(error)")
+                                    logger.warning("Failed to create sharedData directory: \(error)")
                                     group.leave()
                                     return
                                 }
@@ -627,7 +627,7 @@ class ShareExtensionViewController: UIViewController {
                                         sharedItems["files"] = fileArray
                                     }
                                 } catch {
-                                    logger.warn("Failed to copy PDF file: \(error)")
+                                    logger.warning("Failed to copy PDF file: \(error)")
                                 }
                             }
                             // Check if pdfItem is Data (inline PDF data)
@@ -644,10 +644,10 @@ class ShareExtensionViewController: UIViewController {
                                         sharedItems["files"] = fileArray
                                     }
                                 } catch {
-                                    logger.warn("Failed to save PDF data: \(error)")
+                                    logger.warning("Failed to save PDF data: \(error)")
                                 }
                             } else {
-                                logger.warn("SHARED: PDF parsing failed")
+                                logger.warning("SHARED: PDF parsing failed")
                             }
                             group.leave()
                         }
