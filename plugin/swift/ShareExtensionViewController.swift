@@ -454,8 +454,40 @@ class ShareExtensionViewController: UIViewController {
                                         self.logger.warning("Failed to save image: \(error)")
                                     }
                                 }
+                            } else if let imageData = imageItem as? Data {
+                                self.logger.info("SHARED: Image parsed as Data")
+
+                                // Get the original file extension from the provider's registered type identifiers
+                                let originalFileName = provider.registeredTypeIdentifiers.first ?? "image.jpg"
+                                let originalFileExtension = originalFileName.components(separatedBy: ".").last ?? "jpg"
+                                self.logger.info("Original shared file name: \(originalFileName)")
+
+                                let fileName = UUID().uuidString + "." + originalFileExtension
+
+                                let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
+
+                                if !fileManager.fileExists(atPath: sharedDataUrl.path) {
+                                    do {
+                                        try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
+                                    } catch {
+                                        self.logger.warning("Failed to create sharedData directory: \(error)")
+                                    }
+                                }
+
+                                let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
+
+                                do {
+                                    try imageData.write(to: persistentURL)
+                                    self.logger.info("Wrote shared image data to file: \(persistentURL.absoluteString)")
+                                    if var imageArray = sharedItems["images"] as? [String] {
+                                        imageArray.append(persistentURL.absoluteString)
+                                        sharedItems["images"] = imageArray
+                                    }
+                                } catch {
+                                    self.logger.warning("Failed to save image data: \(error)")
+                                }
                             } else {
-                                self.logger.warning("SHARED: Image parsing failed")
+                                self.logger.warning("SHARED: Image parsing failed - unknown type: \(type(of: imageItem))")
                             }
                             group.leave()
                         }
