@@ -79,6 +79,11 @@ class ShareExtensionViewController: UIViewController {
         cleanupAfterClose()
     }
 
+    override func loadView() {
+        view = UIView()
+        view.backgroundColor = UIColor.clear
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         // Start cleanup earlier to ensure proper surface teardown
