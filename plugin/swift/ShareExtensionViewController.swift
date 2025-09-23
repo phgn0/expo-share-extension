@@ -134,7 +134,7 @@ class ShareExtensionViewController: UIViewController {
 
             // Add white background view below the React view
             let whiteBackgroundView = UIView()
-            whiteBackgroundView.backgroundColor = UIColor.red
+            whiteBackgroundView.backgroundColor = UIColor.white
             whiteBackgroundView.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(whiteBackgroundView)
 
@@ -149,7 +149,7 @@ class ShareExtensionViewController: UIViewController {
     }
 
     private func configureRootView(_ rootView: UIView, withHeight: CGFloat?) {
-        rootView.backgroundColor = UIColor.green
+        rootView.backgroundColor = UIColor.clear
         rootView.translatesAutoresizingMaskIntoConstraints = false
 
         if let withHeight = withHeight {
