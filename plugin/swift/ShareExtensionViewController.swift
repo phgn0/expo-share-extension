@@ -128,22 +128,23 @@ class ShareExtensionViewController: UIViewController {
 
             let heightFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionHeight") as? CGFloat
 
-            // Add white background view that fills the safe area
+            // Add React Native root view first
+            view.addSubview(reactNativeRootView)
+            configureRootView(reactNativeRootView, withHeight: heightFromInfoPlist)
+
+            // Add white background view below the React view
             let whiteBackgroundView = UIView()
             whiteBackgroundView.backgroundColor = UIColor.red
             whiteBackgroundView.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(whiteBackgroundView)
 
-            // Configure white background to fill safe area
+            // Configure white background to fill from bottom of React view to bottom of screen
             NSLayoutConstraint.activate([
-                whiteBackgroundView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-                whiteBackgroundView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-                whiteBackgroundView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-                whiteBackgroundView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+                whiteBackgroundView.topAnchor.constraint(equalTo: reactNativeRootView.bottomAnchor),
+                whiteBackgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                whiteBackgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+                whiteBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             ])
-
-            view.addSubview(reactNativeRootView)
-            configureRootView(reactNativeRootView, withHeight: heightFromInfoPlist)
         }
     }
 
