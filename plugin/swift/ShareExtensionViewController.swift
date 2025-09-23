@@ -169,7 +169,7 @@ class ShareExtensionViewController: UIViewController {
 
             // Configure white background to overlap React view by 100px and fill to bottom of screen
             NSLayoutConstraint.activate([
-                whiteBackgroundView.topAnchor.constraint(equalTo: reactNativeRootView.bottomAnchor, constant: -100),
+                whiteBackgroundView.topAnchor.constraint(equalTo: reactNativeRootView.bottomAnchor, constant: -10),
                 whiteBackgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
                 whiteBackgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
                 whiteBackgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
