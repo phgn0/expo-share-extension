@@ -129,6 +129,20 @@ class ShareExtensionViewController: UIViewController {
             let backgroundFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionBackgroundColor") as? [String: CGFloat]
             let heightFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionHeight") as? CGFloat
 
+            // Add white background view that fills the safe area
+            let whiteBackgroundView = UIView()
+            whiteBackgroundView.backgroundColor = UIColor.white
+            whiteBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(whiteBackgroundView)
+
+            // Configure white background to fill safe area
+            NSLayoutConstraint.activate([
+                whiteBackgroundView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+                whiteBackgroundView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+                whiteBackgroundView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+                whiteBackgroundView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            ])
+
             view.addSubview(reactNativeRootView)
             configureRootView(reactNativeRootView, withBackgroundColorDict: backgroundFromInfoPlist, withHeight: heightFromInfoPlist)
         }
@@ -228,9 +242,16 @@ class ShareExtensionViewController: UIViewController {
 
         NotificationCenter.default.removeObserver(self)
 
-        // Remove React Native view and deallocate resources
+        // Remove React Native view and white background view, deallocate resources
         for subview in view.subviews {
             if subview is RCTRootView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        // Remove white background view if it exists
+        for subview in view.subviews {
+            if subview.backgroundColor == UIColor.white, subview != view {
                 subview.removeFromSuperview()
             }
         }
@@ -242,7 +263,7 @@ class ShareExtensionViewController: UIViewController {
     }
 
     private func backgroundColor(from dict: [String: CGFloat]?) -> UIColor {
-        guard let dict = dict else { return .systemBackground }
+        guard let dict = dict else { return .clear }
         let red = dict["red"] ?? 255.0
         let green = dict["green"] ?? 255.0
         let blue = dict["blue"] ?? 255.0
